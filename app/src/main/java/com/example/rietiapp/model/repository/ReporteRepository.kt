@@ -8,14 +8,32 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Response
 
+/**
+ * Repositorio central que abstrae el acceso a fuentes de datos remotas para el envío de reportes,
+ * sincronización de municipios y gestión de evidencias fotográficas en almacenamiento de S3.
+ */
 class ReporteRepository {
 
     private val api = RetrofitInstance.api
 
+    /**
+     * Envía la solicitud para registrar un reporte en el backend.
+     *
+     * @param request Datos del reporte estructurados para la API.
+     * @return [Response] con la respuesta enviada por el servidor backend.
+     */
     suspend fun crearReporte(request: ReporteRequest) = api.crearReporte(request)
 
     /**
-     * Sigue los 3 pasos de subida de evidencias para un archivo Uri dado
+     * Ejecuta el flujo de tres pasos para subir una imagen de evidencia adjunta:
+     * 1. Solicita la URL presignada para S3.
+     * 2. Realiza la carga de datos binarios directamente al bucket de S3.
+     * 3. Confirma el registro de la evidencia en la base de datos MySQL del servidor.
+     *
+     * @param context Contexto de la aplicación para resolver el [Uri] del contenido.
+     * @param folio Folio asignado al reporte.
+     * @param uri [Uri] del archivo local a subir.
+     * @return `true` si todos los pasos se completan con éxito, `false` en caso contrario.
      */
     suspend fun subirFotoEvidencia(context: Context, folio: String, uri: Uri): Boolean {
         try {
@@ -53,8 +71,19 @@ class ReporteRepository {
         }
     }
 
+    /**
+     * Consulta el catálogo global de municipios.
+     *
+     * @return [Response] con la lista de municipios disponibles.
+     */
     suspend fun obtenerMunicipios() = api.obtenerMunicipios()
 
+    /**
+     * Obtiene el reporte asociado a un folio específico para dar seguimiento.
+     *
+     * @param folio Folio único del reporte.
+     * @return [Response] envuelto en [ConsultaReporteWrapper].
+     */
     suspend fun consultarReportePorFolio(folio: String): Response<ConsultaReporteWrapper> {
         return api.consultarReporte(folio)
     }

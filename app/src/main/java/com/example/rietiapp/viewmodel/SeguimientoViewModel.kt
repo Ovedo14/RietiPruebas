@@ -13,17 +13,35 @@ import kotlinx.coroutines.launch
 
 private const val TAG = "SEGUIMIENTO_DEBUG"
 
+/**
+ * ViewModel que gestiona el estado y las operaciones para la consulta y seguimiento de reportes existentes.
+ *
+ * @property repository Repositorio para consultar información del reporte por medio de la API REST.
+ */
 class SeguimientoViewModel(
     private val repository: ReporteRepository = ReporteRepository()
 ) : ViewModel() {
 
+    /**
+     * Estado observable de la interfaz de usuario para el flujo de seguimiento.
+     */
     var uiState by mutableStateOf(SeguimientoUiState())
         private set
 
+    /**
+     * Actualiza el folio ingresado en el campo de búsqueda de la UI.
+     *
+     * @param nuevoFolio Cadena con el nuevo texto del folio.
+     */
     fun onFolioInputChange(nuevoFolio: String) {
         uiState = uiState.copy(folioInput = nuevoFolio, error = null)
     }
 
+    /**
+     * Realiza una búsqueda asíncrona del reporte registrado en la base de datos a partir del folio en [uiState].
+     *
+     * @param onExito Callback invocado si el reporte se localiza con éxito.
+     */
     fun buscarReporte(onExito: () -> Unit) {
         val folioLimpio = uiState.folioInput.trim()
 
@@ -43,7 +61,6 @@ class SeguimientoViewModel(
                 Log.d(TAG, "📡 Código de respuesta HTTP: ${response.code()}")
 
                 if (response.isSuccessful && response.body() != null) {
-                    // 🟢 FIX: Extraer el body() de Retrofit y luego acceder a .reporte del wrapper
                     val wrapper = response.body()!!
                     val datos = wrapper.reporte
 
@@ -76,6 +93,12 @@ class SeguimientoViewModel(
         }
     }
 
+    /**
+     * Determina el índice numérico de la etapa de progreso a partir de la cadena de estatus retornada por la API.
+     *
+     * @param estado Etiqueta textual del estado.
+     * @return Nivel numérico correspondiente en la escala de 1 a 5.
+     */
     private fun calcularNivelProgreso(estado: String): Int {
         return when (estado.lowercase().trim()) {
             "registrado", "recibido" -> 1

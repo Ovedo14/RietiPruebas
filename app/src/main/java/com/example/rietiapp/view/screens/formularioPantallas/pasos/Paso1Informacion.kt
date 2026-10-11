@@ -10,6 +10,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 
+/**
+ * Componente ejecutable del Paso 1 del formulario de reporte de incidencias.
+ * Permite capturar los datos principales de la observación: cantidad de menores,
+ * rango de edad, género, actividad realizada, hora aproximada, nivel de riesgo y descripción detallada.
+ *
+ * @param cantidadSeleccionada Valor seleccionado de cantidad de menores observados.
+ * @param onCantidadChange Callback al cambiar la selección de cantidad.
+ * @param edadSeleccionada Rango de edad seleccionado.
+ * @param onEdadSelected Callback al seleccionar el rango de edad.
+ * @param generoSeleccionado Género observado seleccionado.
+ * @param onGeneroSelected Callback al seleccionar el género.
+ * @param actividadSeleccionada Actividad identificada en el incidente.
+ * @param onActividadSelected Callback al seleccionar la actividad.
+ * @param hora Hora aproximada en formato `HH:mm`.
+ * @param onHoraSelected Callback ejecutado cuando se selecciona una hora desde el [TimePickerDialog].
+ * @param riesgo Indicador de presencia de situación de riesgo ("Sí", "No", "No se").
+ * @param onRiesgoChange Callback al cambiar la opción de riesgo.
+ * @param descripcion Texto descriptivo ingresado por el usuario sobre los hechos observados.
+ * @param onDescripcionChange Callback para actualizar el texto de la descripción.
+ * @param modifier Modificador composable opcional.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Paso1Informacion(
@@ -65,15 +86,14 @@ fun Paso1Informacion(
 
             Text(
                 text = "Proporciona información aproximada. No es necesario que conozcas datos exactos.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MaterialTheme.typography.bodyMedium
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // --- 1. CANTIDAD DE NIÑOS ---
             Text(
-                text = "¿Cuántas niñas, niños o adolescentes observaste?",
+                text = "¿Cuántas niñas, niños o adolescentes observaste? *",
                 style = MaterialTheme.typography.titleMedium
             )
 
@@ -84,10 +104,9 @@ fun Paso1Informacion(
                 onExpandedChange = { expandedCantidad = !expandedCantidad }
             ) {
                 OutlinedTextField(
-                    value = cantidadSeleccionada,
+                    value = cantidadSeleccionada.ifBlank { "Selecciona cantidad" },
                     onValueChange = {},
                     readOnly = true,
-                    placeholder = { Text("Selecciona una cantidad") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCantidad) },
                     modifier = Modifier
                         .menuAnchor()
@@ -112,9 +131,9 @@ fun Paso1Informacion(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- 2. EDAD ---
+            // --- 2. EDAD APROXIMADA ---
             Text(
-                text = "Edad aproximada",
+                text = "Edad aproximada *",
                 style = MaterialTheme.typography.titleMedium
             )
 
@@ -125,10 +144,9 @@ fun Paso1Informacion(
                 onExpandedChange = { expandedEdad = !expandedEdad }
             ) {
                 OutlinedTextField(
-                    value = edadSeleccionada,
+                    value = edadSeleccionada.ifBlank { "Selecciona rango de edad" },
                     onValueChange = {},
                     readOnly = true,
-                    placeholder = { Text("Selecciona un rango de edad") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedEdad) },
                     modifier = Modifier
                         .menuAnchor()
@@ -155,7 +173,7 @@ fun Paso1Informacion(
 
             // --- 3. GÉNERO ---
             Text(
-                text = "Género observado",
+                text = "Género observado *",
                 style = MaterialTheme.typography.titleMedium
             )
 
@@ -166,10 +184,9 @@ fun Paso1Informacion(
                 onExpandedChange = { expandedGenero = !expandedGenero }
             ) {
                 OutlinedTextField(
-                    value = generoSeleccionado,
+                    value = generoSeleccionado.ifBlank { "Selecciona género" },
                     onValueChange = {},
                     readOnly = true,
-                    placeholder = { Text("Selecciona el género") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedGenero) },
                     modifier = Modifier
                         .menuAnchor()
@@ -194,7 +211,7 @@ fun Paso1Informacion(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- 4. ACTIVIDAD (OBLIGATORIO) ---
+            // --- 4. ACTIVIDAD OBSERVADA ---
             Text(
                 text = "¿Qué actividad estaban realizando? *",
                 style = MaterialTheme.typography.titleMedium
@@ -207,10 +224,9 @@ fun Paso1Informacion(
                 onExpandedChange = { expandedActividad = !expandedActividad }
             ) {
                 OutlinedTextField(
-                    value = actividadSeleccionada,
+                    value = actividadSeleccionada.ifBlank { "Selecciona actividad" },
                     onValueChange = {},
                     readOnly = true,
-                    placeholder = { Text("Selecciona una actividad") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedActividad) },
                     modifier = Modifier
                         .menuAnchor()
@@ -235,9 +251,9 @@ fun Paso1Informacion(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- 5. HORA ---
+            // --- 5. HORA DE OBSERVACIÓN ---
             Text(
-                text = "¿A qué hora aproximadamente observaste la situación?",
+                text = "¿A qué hora aproximada observaste la situación?",
                 style = MaterialTheme.typography.titleMedium
             )
 
@@ -247,10 +263,9 @@ fun Paso1Informacion(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 OutlinedTextField(
-                    value = hora,
+                    value = hora.ifBlank { "Selecciona una hora" },
                     onValueChange = {},
                     readOnly = true,
-                    placeholder = { Text("Selecciona la hora") },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -314,7 +329,7 @@ fun Paso1Informacion(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- 7. DESCRIPCIÓN (CON CONTADOR HASTA 500) ---
+            // --- 7. DESCRIPCIÓN ---
             Text(
                 text = "Descripción de los hechos *",
                 style = MaterialTheme.typography.titleMedium

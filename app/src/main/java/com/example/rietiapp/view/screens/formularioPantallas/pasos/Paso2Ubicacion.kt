@@ -35,13 +35,28 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.MapEventsOverlay
 import org.osmdroid.views.overlay.Marker
 
+/**
+ * Componente ejecutable del Paso 2 del formulario de reporte.
+ * Muestra un mapa interactivo basado en OpenStreetMap/osmdroid para la selección de ubicación geográfica,
+ * resuelve la geocodificación inversa mediante Geocoder de Android, permite adjuntar imágenes
+ * de evidencia e ingresar referencias del lugar.
+ *
+ * @param fotosUris Lista de [Uri]s locales con las fotografías seleccionadas.
+ * @param onFotosChange Callback al modificar la lista de fotos.
+ * @param modifier Modificador composable opcional.
+ * @param ubicacionDireccion Dirección del lugar resuelta por geocodificación.
+ * @param onUbicacionChange Callback invocado al seleccionar un punto en el mapa con latitud, longitud, dirección y municipio.
+ * @param referencias Texto con referencias adicionales ingresadas por el usuario.
+ * @param onReferenciasChange Callback al editar las referencias del lugar.
+ */
 @Composable
 fun Paso2Ubicacion(
     fotosUris: List<Uri>,
     onFotosChange: (List<Uri>) -> Unit,
     modifier: Modifier = Modifier,
     ubicacionDireccion: String = "",
-    onUbicacionChange: (lat: Double, lng: Double, direccion: String, municipio: String) -> Unit = { _, _, _, _ -> },    referencias: String = "",
+    onUbicacionChange: (lat: Double, lng: Double, direccion: String, municipio: String) -> Unit = { _, _, _, _ -> },
+    referencias: String = "",
     onReferenciasChange: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -56,7 +71,6 @@ fun Paso2Ubicacion(
         coroutineScope.launch {
             val (direccion, municipio) = obtenerDireccionYMunicipio(context, geoPoint)
             estaCargandoDireccion = false
-            // Notifica las coordenadas como Double y las cadenas como String
             onUbicacionChange(geoPoint.latitude, geoPoint.longitude, direccion, municipio)
         }
     }
@@ -67,7 +81,6 @@ fun Paso2Ubicacion(
         }
     }
 
-    // El launcher de permisos SOLO se activa si el usuario presiona el botón de ubicación
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -78,8 +91,6 @@ fun Paso2Ubicacion(
         }
     }
 
-    // Al abrir la pantalla solo toma la ubicación SI EL USUARIO YA HABÍA DADO PERMISOS antes.
-    // NUNCA muestra el diálogo emergente de permisos de forma automática.
     LaunchedEffect(Unit) {
         val hasFine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
         val hasCoarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -139,7 +150,6 @@ fun Paso2Ubicacion(
                         )
                     }
 
-                    // Botón flotante para pedir la ubicación por GPS
                     SmallFloatingActionButton(
                         onClick = {
                             val hasFine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -148,7 +158,6 @@ fun Paso2Ubicacion(
                             if (hasFine || hasCoarse) {
                                 solicitarUbicacionActual()
                             } else {
-                                // Aquí se solicita el permiso únicamente tras la acción directa del usuario
                                 permissionLauncher.launch(
                                     arrayOf(
                                         Manifest.permission.ACCESS_FINE_LOCATION,
@@ -218,7 +227,6 @@ fun Paso2Ubicacion(
                 }
             }
 
-            // MENSAJE INFORMATIVO DE UX CUANDO AÚN NO HA SELECCIONADO NADA
             if (ubicacionDireccion.isBlank()) {
                 Surface(
                     color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f),
@@ -244,7 +252,6 @@ fun Paso2Ubicacion(
                 }
             }
 
-            // CAMPO DE REFERENCIAS OPCIONAL
             OutlinedTextField(
                 value = referencias,
                 onValueChange = onReferenciasChange,
@@ -264,7 +271,6 @@ fun Paso2Ubicacion(
                 }
             )
 
-            // SECCIÓN DE FOTOS
             SeccFotosReferencia(
                 fotosUris = fotosUris,
                 onFotosChange = onFotosChange
@@ -283,6 +289,13 @@ private val ESRI_WORLD_STREET_MAP = object : OnlineTileSourceBase(
     }
 }
 
+/**
+ * Componente Composable que integra la vista nativa de mapa de [MapView] de osmdroid en Jetpack Compose.
+ *
+ * @param selectedGeoPoint Coordenadas [GeoPoint] seleccionadas para desplegar un marcador.
+ * @param onLocationSelected Callback al realizar tap sobre una ubicación en el mapa.
+ * @param modifier Modificador composable opcional.
+ */
 @Composable
 fun OsmMapView(
     selectedGeoPoint: GeoPoint?,
@@ -369,6 +382,9 @@ fun OsmMapView(
     )
 }
 
+/**
+ * Obtiene la última ubicación GPS o de red conocida del dispositivo mediante [LocationManager].
+ */
 private fun obtenerUbicacionActual(
     context: Context,
     onUbicacionObtenida: (GeoPoint) -> Unit
@@ -403,6 +419,9 @@ private fun obtenerUbicacionActual(
     }
 }
 
+/**
+ * Resuelve la dirección y el municipio a partir de coordenadas geográficas utilizando [android.location.Geocoder].
+ */
 private suspend fun obtenerDireccionYMunicipio(
     context: Context,
     geoPoint: GeoPoint

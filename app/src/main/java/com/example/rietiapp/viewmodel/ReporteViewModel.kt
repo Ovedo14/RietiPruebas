@@ -19,10 +19,20 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.Normalizer
 
+/**
+ * ViewModel encargado de la lógica de negocio y gestión de estado UI durante la creación de reportes.
+ * Administra el catálogo de municipios, geocodificación inversa, estados de los pasos e integración
+ * con el repositorio [ReporteRepository] para el envío de formularios y evidencias.
+ *
+ * @property repository Instancia de [ReporteRepository] para la comunicación con la API.
+ */
 class ReporteViewModel(
     private val repository: ReporteRepository = ReporteRepository()
 ) : ViewModel() {
 
+    /**
+     * Estado reactivo de la UI para la pantalla del formulario de reporte.
+     */
     var uiState by mutableStateOf(ReporteUiState())
         private set
 
@@ -32,6 +42,9 @@ class ReporteViewModel(
         cargarCatalogoMunicipios()
     }
 
+    /**
+     * Carga el catálogo de municipios desde el backend de forma asíncrona.
+     */
     private fun cargarCatalogoMunicipios() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -54,10 +67,23 @@ class ReporteViewModel(
         }
     }
 
+    /**
+     * Aplica una transformación inmutable sobre el estado de la UI [ReporteUiState].
+     *
+     * @param transform Función que toma el estado actual y retorna un nuevo estado.
+     */
     fun updateState(transform: (ReporteUiState) -> ReporteUiState) {
         uiState = transform(uiState)
     }
 
+    /**
+     * Actualiza la ubicación seleccionada por el usuario y determina el municipio correspondiente.
+     *
+     * @param latitud Coordenada de latitud.
+     * @param longitud Coordenada de longitud.
+     * @param direccionCompleta Dirección formateada provista por el servicio Geocoder.
+     * @param nombreMunicipioDetectado Nombre del municipio identificado por la ubicación.
+     */
     fun resolverYActualizarUbicacion(
         latitud: Double,
         longitud: Double,
@@ -78,6 +104,12 @@ class ReporteViewModel(
         }
     }
 
+    /**
+     * Busca la id del municipio en el catálogo comparando cadenas de texto normalizadas.
+     *
+     * @param nombreDetectado Nombre del municipio a buscar.
+     * @return Identificador [Int] del municipio coincidente, o `1` por defecto si no se encuentra.
+     */
     private fun asociarMunicipioPorNombre(nombreDetectado: String): Int {
         if (catalogoMunicipios.isEmpty()) {
             Log.w("REPORTE_DEBUG", "El catálogo de municipios aún no se ha cargado de la API.")
@@ -104,6 +136,12 @@ class ReporteViewModel(
         }
     }
 
+    /**
+     * Remueve acentos, diacríticos y convierte a minúsculas una cadena de texto para facilitar comparaciones.
+     *
+     * @param texto Cadena original.
+     * @return Cadena de texto normalizada.
+     */
     private fun normalizarTexto(texto: String): String {
         return Normalizer.normalize(texto, Normalizer.Form.NFD)
             .replace("\\p{InCombiningDiacriticalMarks}+".toRegex(), "")
@@ -111,6 +149,12 @@ class ReporteViewModel(
             .trim()
     }
 
+    /**
+     * Mapea la cadena de la actividad observada a su correspondiente ID numérico del catálogo.
+     *
+     * @param actividadNombre Nombre descriptivo de la actividad.
+     * @return ID numérico asignado a la actividad en el catálogo.
+     */
     private fun obtenerIdActividad(actividadNombre: String): Int {
         val actividades = listOf(
             "Venta de productos en via publica",
@@ -125,6 +169,12 @@ class ReporteViewModel(
         return if (index >= 0) index + 1 else 1
     }
 
+    /**
+     * Procesa y envía el reporte completo junto con sus archivos de evidencia fotográfica si existen.
+     *
+     * @param context Contexto necesario para acceder a los recursos de archivos.
+     * @param onSuccess Callback ejecutado al completar exitosamente la transacción.
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     fun enviarReporteConEvidencias(context: Context, onSuccess: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -186,6 +236,11 @@ class ReporteViewModel(
         }
     }
 
+    /**
+     * Construye el objeto [ReporteRequest] a partir de los valores capturados en [uiState].
+     *
+     * @return Instancia configurada de [ReporteRequest].
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     private fun construirRequest(): ReporteRequest {
         var horaFormateada = uiState.hora.ifBlank {
@@ -201,7 +256,6 @@ class ReporteViewModel(
             modalidad = if (uiState.modalidad.isNotBlank()) uiState.modalidad else "ANONIMO",
             correo_contacto = if (uiState.modalidad == "ANONIMO") null else uiState.correo.ifBlank { null },
 
-            // 🟢 FALLBACKS SEGUROS PARA EL BACKEND
             num_menores = uiState.cantidadSeleccionada.toIntOrNull() ?: 1,
             rango_edad = uiState.edadSeleccionada.ifBlank { "No especificado" },
             genero_observado = uiState.generoSeleccionado.ifBlank { "No especificado" },
