@@ -31,7 +31,7 @@ fun Paso1Informacion(
 ) {
     val context = LocalContext.current
 
-    var expandedCantidad by remember { mutableStateOf(false ) }
+    var expandedCantidad by remember { mutableStateOf(false) }
     var expandedEdad by remember { mutableStateOf(false) }
     var expandedGenero by remember { mutableStateOf(false) }
     var expandedActividad by remember { mutableStateOf(false) }
@@ -48,6 +48,8 @@ fun Paso1Informacion(
         "Otra situación de explotación y/o vulneración"
     )
 
+    val maxCaracteres = 500
+
     Card(
         modifier = modifier.fillMaxWidth()
     ) {
@@ -63,12 +65,20 @@ fun Paso1Informacion(
 
             Text(
                 text = "Proporciona información aproximada. No es necesario que conozcas datos exactos.",
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // CANTIDAD DE NIÑOS
+            // --- 1. CANTIDAD DE NIÑOS ---
+            Text(
+                text = "¿Cuántas niñas, niños o adolescentes observaste?",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             ExposedDropdownMenuBox(
                 expanded = expandedCantidad,
                 onExpandedChange = { expandedCantidad = !expandedCantidad }
@@ -77,7 +87,7 @@ fun Paso1Informacion(
                     value = cantidadSeleccionada,
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("¿Cuántas niñas, niños o adolescentes observaste?") },
+                    placeholder = { Text("Selecciona una cantidad") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCantidad) },
                     modifier = Modifier
                         .menuAnchor()
@@ -102,7 +112,14 @@ fun Paso1Informacion(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // EDAD
+            // --- 2. EDAD ---
+            Text(
+                text = "Edad aproximada",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             ExposedDropdownMenuBox(
                 expanded = expandedEdad,
                 onExpandedChange = { expandedEdad = !expandedEdad }
@@ -111,7 +128,7 @@ fun Paso1Informacion(
                     value = edadSeleccionada,
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Edad aproximada") },
+                    placeholder = { Text("Selecciona un rango de edad") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedEdad) },
                     modifier = Modifier
                         .menuAnchor()
@@ -136,7 +153,14 @@ fun Paso1Informacion(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // GÉNERO
+            // --- 3. GÉNERO ---
+            Text(
+                text = "Género observado",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             ExposedDropdownMenuBox(
                 expanded = expandedGenero,
                 onExpandedChange = { expandedGenero = !expandedGenero }
@@ -145,7 +169,7 @@ fun Paso1Informacion(
                     value = generoSeleccionado,
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Género observado") },
+                    placeholder = { Text("Selecciona el género") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedGenero) },
                     modifier = Modifier
                         .menuAnchor()
@@ -170,7 +194,14 @@ fun Paso1Informacion(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // ACTIVIDAD
+            // --- 4. ACTIVIDAD (OBLIGATORIO) ---
+            Text(
+                text = "¿Qué actividad estaban realizando? *",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             ExposedDropdownMenuBox(
                 expanded = expandedActividad,
                 onExpandedChange = { expandedActividad = !expandedActividad }
@@ -179,7 +210,7 @@ fun Paso1Informacion(
                     value = actividadSeleccionada,
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("¿Qué actividad estaban realizando?") },
+                    placeholder = { Text("Selecciona una actividad") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedActividad) },
                     modifier = Modifier
                         .menuAnchor()
@@ -204,7 +235,14 @@ fun Paso1Informacion(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // HORA
+            // --- 5. HORA ---
+            Text(
+                text = "¿A qué hora aproximadamente observaste la situación?",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             Box(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -212,7 +250,7 @@ fun Paso1Informacion(
                     value = hora,
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("¿A qué hora aproximadamente observaste la situación?") },
+                    placeholder = { Text("Selecciona la hora") },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -236,50 +274,78 @@ fun Paso1Informacion(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // RIESGO
-            Text(text = "¿Observaste alguna situación de riesgo?")
+            // --- 6. RIESGO ---
+            Text(
+                text = "¿Observaste alguna situación de riesgo?",
+                style = MaterialTheme.typography.titleMedium
+            )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            Row (modifier = Modifier.fillMaxWidth(),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically)
-            {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier){
-                RadioButton(
-                    selected = riesgo == "Sí",
-                    onClick = { onRiesgoChange("Sí") }
-                )
-                Text("Sí")
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(
+                        selected = riesgo == "Sí",
+                        onClick = { onRiesgoChange("Sí") }
+                    )
+                    Text("Sí")
+                }
 
-                RadioButton(
-                    selected = riesgo == "No",
-                    onClick = { onRiesgoChange("No") }
-                )
-                Text("No")
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(
+                        selected = riesgo == "No",
+                        onClick = { onRiesgoChange("No") }
+                    )
+                    Text("No")
+                }
 
-                RadioButton(
-                    selected = riesgo == "No se",
-                    onClick = { onRiesgoChange("No se") }
-                )
-                Text("No se")
-            }}
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(
+                        selected = riesgo == "No se",
+                        onClick = { onRiesgoChange("No se") }
+                    )
+                    Text("No sé")
+                }
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // CAMPO: CUÉNTANOS BREVEMENTE QUÉ OBSERVASTE
+            // --- 7. DESCRIPCIÓN (CON CONTADOR HASTA 500) ---
+            Text(
+                text = "Descripción de los hechos *",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             OutlinedTextField(
                 value = descripcion,
-                onValueChange = onDescripcionChange,
-                label = { Text("Cuéntanos brevemente qué observaste") },
-                placeholder = { Text("Escribe aquí los detalles...") },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 1,
-                maxLines = 5
+                onValueChange = { nuevoTexto ->
+                    if (nuevoTexto.length <= maxCaracteres) {
+                        onDescripcionChange(nuevoTexto)
+                    }
+                },
+                placeholder = {
+                    Text("Describe brevemente lo que observaste...")
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(130.dp),
+                singleLine = false,
+                supportingText = {
+                    Text(
+                        text = "${descripcion.length}/$maxCaracteres",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.End,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             )
         }
     }
 }
-

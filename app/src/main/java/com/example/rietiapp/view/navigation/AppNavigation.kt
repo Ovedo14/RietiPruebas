@@ -20,6 +20,7 @@ import com.example.rietiapp.view.screens.pantallaPrincipal.PeligroScreen
 import com.example.rietiapp.view.screens.seguimientoReportes.ConsultaReporteScreen
 import com.example.rietiapp.view.screens.seguimientoReportes.SeguimientoScreen
 import com.example.rietiapp.viewmodel.ReporteViewModel
+import com.example.rietiapp.viewmodel.SeguimientoViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -32,6 +33,7 @@ fun AppNavigation() {
 
     // ViewModel compartido para todo el flujo de creación de reporte
     val reporteViewModel: ReporteViewModel = viewModel()
+    val seguimientoViewModel: SeguimientoViewModel = viewModel()
 
     Scaffold(
         topBar = {
@@ -67,7 +69,6 @@ fun AppNavigation() {
             }
 
             composable(Routes.TIPO_REPORTE) {
-                // ✅ Le pasamos el ViewModel compartido para guardar modalidad y correo
                 TipoReporteScreen(
                     viewModel = reporteViewModel,
                     onContinuarClick = {
@@ -80,7 +81,9 @@ fun AppNavigation() {
                 FormularioScreen(
                     viewModel = reporteViewModel,
                     onEnviarClick = {
-                        navController.navigate(Routes.CONFIRMACION)
+                        navController.navigate(Routes.CONFIRMACION) {
+                            popUpTo(Routes.HOME)
+                        }
                     }
                 )
             }
@@ -100,6 +103,7 @@ fun AppNavigation() {
 
             composable(Routes.SEGUIMIENTO) {
                 SeguimientoScreen(
+                    viewModel = seguimientoViewModel,
                     onConsultarClick = {
                         navController.navigate(Routes.CONSULTA)
                     }
@@ -108,9 +112,7 @@ fun AppNavigation() {
 
             composable(Routes.CONSULTA) {
                 ConsultaReporteScreen(
-                    folio = "RIETI-ATZ-2026-000123",
-                    estado = "En revisión",
-                    municipio = "Atizapán de Zaragoza"
+                    viewModel = seguimientoViewModel
                 )
             }
 

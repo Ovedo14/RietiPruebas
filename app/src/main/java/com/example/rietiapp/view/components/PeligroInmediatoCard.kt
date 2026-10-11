@@ -1,22 +1,23 @@
 package com.example.rietiapp.view.components
 
+import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 
 @Composable
 fun PeligroInmediatoCard() {
 
+    val context = LocalContext.current
+
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
-
         Column(
             modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -28,41 +29,48 @@ fun PeligroInmediatoCard() {
             )
 
             Text(
-                text = "Si existe un riesgo inmediato para su vida, integridad o seguridad, comunícate con los servicios de emergencia."
+                text = "Si existe un riesgo inminente para su vida, integridad o seguridad, comunícate de inmediato con los servicios de respuesta del C5."
             )
 
+            // Tarjeta del C5 (Centro de Control, Comando, Comunicación, Cómputo y Calidad)
             Card(
                 modifier = Modifier.fillMaxWidth()
             ) {
-
-                Column(
-                    modifier = Modifier.padding(16.dp)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-
-                    Text("Centro de Comando y Control (C4)")
-
-                    Text(
-                        text = "55 0000 0000",
-                        style = MaterialTheme.typography.headlineMedium
-                    )
-                }
-            }
-
-            val context = LocalContext.current
-
-            Button(
-                onClick = {
-
-                    val intent = Intent(
-                        Intent.ACTION_DIAL
-                    ).apply {
-                        data = "tel:5500000000".toUri()
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "Centro de Mando C5 (Emergencias)",
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                        Text(
+                            text = "911",
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = MaterialTheme.colorScheme.error
+                        )
                     }
 
-                    context.startActivity(intent)
+                    Button(
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_DIAL).apply {
+                                data = "tel:911".toUri()
+                            }
+                            context.startActivity(intent)
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text("Llamar al C5")
+                    }
                 }
-            ) {
-                Text("Llamar al C4")
             }
 
             HorizontalDivider()
@@ -73,13 +81,13 @@ fun PeligroInmediatoCard() {
             )
 
             Text(
-                text = "El formulario RIETI no sustituye los servicios de emergencia ni los mecanismos formales de denuncia."
+                text = "El formulario RIETI es una herramienta de registro institucional y no sustituye la atención inmediata de emergencias del C5 ni las denuncias ante la Procuraduría de Protección de NNyA."
             )
 
             HorizontalDivider()
 
             Text(
-                text = "Si no existe peligro inmediato, puedes continuar utilizando RIETI para registrar la situación observada."
+                text = "Si la situación es de observación o seguimiento sin riesgo inminente, puedes continuar completando el reporte en la aplicación."
             )
         }
     }

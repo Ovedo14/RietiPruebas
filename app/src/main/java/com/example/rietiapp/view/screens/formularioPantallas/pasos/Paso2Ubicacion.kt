@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
@@ -36,14 +37,12 @@ import org.osmdroid.views.overlay.Marker
 
 @Composable
 fun Paso2Ubicacion(
-    referencias: String = "",
-    onReferenciasChange: (String) -> Unit = {},
     fotosUris: List<Uri>,
     onFotosChange: (List<Uri>) -> Unit,
     modifier: Modifier = Modifier,
     ubicacionDireccion: String = "",
-    // Firma de 4 parámetros: latitud, longitud, dirección y municipio detectado
-    onUbicacionChange: (latitud: Double, longitud: Double, direccion: String, municipio: String) -> Unit = { _, _, _, _ -> }
+    onUbicacionChange: (lat: Double, lng: Double, direccion: String, municipio: String) -> Unit = { _, _, _, _ -> },    referencias: String = "",
+    onReferenciasChange: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -54,12 +53,11 @@ fun Paso2Ubicacion(
     val seleccionarUbicacion: (GeoPoint) -> Unit = { geoPoint ->
         selectedPoint = geoPoint
         estaCargandoDireccion = true
-        onUbicacionChange(geoPoint.latitude, geoPoint.longitude, "Buscando dirección...", "")
-
         coroutineScope.launch {
-            val (direccion, municipioDetectado) = obtenerDireccionYMunicipio(context, geoPoint)
+            val (direccion, municipio) = obtenerDireccionYMunicipio(context, geoPoint)
             estaCargandoDireccion = false
-            onUbicacionChange(geoPoint.latitude, geoPoint.longitude, direccion, municipioDetectado)
+            // Notifica las coordenadas como Double y las cadenas como String
+            onUbicacionChange(geoPoint.latitude, geoPoint.longitude, direccion, municipio)
         }
     }
 
@@ -69,6 +67,7 @@ fun Paso2Ubicacion(
         }
     }
 
+    // El launcher de permisos SOLO se activa si el usuario presiona el botón de ubicación
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -79,19 +78,14 @@ fun Paso2Ubicacion(
         }
     }
 
+    // Al abrir la pantalla solo toma la ubicación SI EL USUARIO YA HABÍA DADO PERMISOS antes.
+    // NUNCA muestra el diálogo emergente de permisos de forma automática.
     LaunchedEffect(Unit) {
         val hasFine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
         val hasCoarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
-        if (hasFine || hasCoarse) {
+        if ((hasFine || hasCoarse) && ubicacionDireccion.isBlank()) {
             solicitarUbicacionActual()
-        } else {
-            permissionLauncher.launch(
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                )
-            )
         }
     }
 
@@ -110,10 +104,11 @@ fun Paso2Ubicacion(
             )
 
             Text(
-                text = "Proporciona la ubicación aproximada donde observaste la situación.",
+                text = "Toca un punto en el mapa para marcar el lugar del reporte, o usa el botón de GPS si estás en el sitio.",
                 style = MaterialTheme.typography.bodyMedium
             )
 
+            // MAPA INTERACTIVO
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -128,7 +123,7 @@ fun Paso2Ubicacion(
                         modifier = Modifier.fillMaxSize()
                     ) {
                         Text(
-                            text = "Selecciona tu ubicación en el mapa (toca un punto):",
+                            text = "Toca cualquier punto del mapa para fijar el lugar:",
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.padding(bottom = 4.dp)
                         )
@@ -144,6 +139,7 @@ fun Paso2Ubicacion(
                         )
                     }
 
+                    // Botón flotante para pedir la ubicación por GPS
                     SmallFloatingActionButton(
                         onClick = {
                             val hasFine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -152,6 +148,7 @@ fun Paso2Ubicacion(
                             if (hasFine || hasCoarse) {
                                 solicitarUbicacionActual()
                             } else {
+                                // Aquí se solicita el permiso únicamente tras la acción directa del usuario
                                 permissionLauncher.launch(
                                     arrayOf(
                                         Manifest.permission.ACCESS_FINE_LOCATION,
@@ -168,12 +165,13 @@ fun Paso2Ubicacion(
                     ) {
                         Icon(
                             imageVector = Icons.Default.MyLocation,
-                            contentDescription = "Mi ubicación actual"
+                            contentDescription = "Usar mi ubicación actual"
                         )
                     }
                 }
             }
 
+            // TARJETA DE DIRECCIÓN DETECTADA
             Card(
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -211,15 +209,42 @@ fun Paso2Ubicacion(
                             }
                         } else {
                             Text(
-                                text = if (ubicacionDireccion.isNotBlank()) ubicacionDireccion else "Toca un punto en el mapa para fijar la ubicación",
+                                text = if (ubicacionDireccion.isNotBlank()) ubicacionDireccion else "Ninguna (Toca un punto en el mapa)",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = if (ubicacionDireccion.isNotBlank()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.secondary
+                                color = if (ubicacionDireccion.isNotBlank()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error
                             )
                         }
                     }
                 }
             }
 
+            // MENSAJE INFORMATIVO DE UX CUANDO AÚN NO HA SELECCIONADO NADA
+            if (ubicacionDireccion.isBlank()) {
+                Surface(
+                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f),
+                    shape = MaterialTheme.shapes.small,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        Text(
+                            text = "Para avanzar al siguiente paso es necesario marcar un punto en el mapa.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    }
+                }
+            }
+
+            // CAMPO DE REFERENCIAS OPCIONAL
             OutlinedTextField(
                 value = referencias,
                 onValueChange = onReferenciasChange,
@@ -235,10 +260,11 @@ fun Paso2Ubicacion(
                 maxLines = 3,
                 singleLine = false,
                 supportingText = {
-                    Text("Describe detalles visuales útiles para encontrar el punto exacto.")
+                    Text("Detalles visuales para localizar el punto exacto.")
                 }
             )
 
+            // SECCIÓN DE FOTOS
             SeccFotosReferencia(
                 fotosUris = fotosUris,
                 onFotosChange = onFotosChange
@@ -382,26 +408,33 @@ private suspend fun obtenerDireccionYMunicipio(
     geoPoint: GeoPoint
 ): Pair<String, String> = withContext(Dispatchers.IO) {
     var direccion = ""
-    var municipioNombre = ""
+    var municipio = ""
 
     try {
         val geocoder = android.location.Geocoder(context, java.util.Locale.getDefault())
         @Suppress("DEPRECATION")
         val addresses = geocoder.getFromLocation(geoPoint.latitude, geoPoint.longitude, 1)
-
         if (!addresses.isNullOrEmpty()) {
             val addr = addresses[0]
-            municipioNombre = addr.subAdminArea ?: addr.locality ?: ""
             val street = addr.thoroughfare ?: addr.getFeatureName() ?: ""
-            val subLocality = addr.subLocality ?: ""
-            val parts = listOf(street, subLocality, municipioNombre).filter { it.isNotBlank() }
-            direccion = parts.joinToString(", ")
+            val subLocality = addr.subLocality ?: addr.subAdminArea ?: ""
+            val locality = addr.locality ?: ""
+            val adminArea = addr.adminArea ?: ""
+
+            municipio = addr.subAdminArea ?: addr.locality ?: ""
+
+            val parts = listOf(street, subLocality, locality, adminArea).filter { it.isNotBlank() }
+            if (parts.isNotEmpty()) {
+                direccion = parts.joinToString(", ")
+            } else {
+                direccion = addr.getAddressLine(0) ?: ""
+            }
         }
     } catch (_: Exception) {}
 
     if (direccion.isBlank()) {
-        direccion = "Latitud: %.4f, Longitud: %.4f".format(geoPoint.latitude, geoPoint.longitude)
+        direccion = "Lat: %.4f, Lng: %.4f".format(geoPoint.latitude, geoPoint.longitude)
     }
 
-    return@withContext Pair(direccion, municipioNombre)
+    return@withContext Pair(direccion, municipio)
 }

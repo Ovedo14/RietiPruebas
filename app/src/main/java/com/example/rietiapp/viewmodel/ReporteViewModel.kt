@@ -195,26 +195,29 @@ class ReporteViewModel(
             horaFormateada += ":00"
         }
 
-        val municipioValido = if (uiState.idMunicipio > 0) uiState.idMunicipio else 1
-        val actividadValida = obtenerIdActividad(uiState.actividadSeleccionada)
-
         return ReporteRequest(
-            idMunicipio = municipioValido,
-            idCatalogoActividad = actividadValida,
+            idMunicipio = if (uiState.idMunicipio > 0) uiState.idMunicipio else 1,
+            idCatalogoActividad = obtenerIdActividad(uiState.actividadSeleccionada),
             modalidad = if (uiState.modalidad.isNotBlank()) uiState.modalidad else "ANONIMO",
             correo_contacto = if (uiState.modalidad == "ANONIMO") null else uiState.correo.ifBlank { null },
+
+            // 🟢 FALLBACKS SEGUROS PARA EL BACKEND
             num_menores = uiState.cantidadSeleccionada.toIntOrNull() ?: 1,
             rango_edad = uiState.edadSeleccionada.ifBlank { "No especificado" },
             genero_observado = uiState.generoSeleccionado.ifBlank { "No especificado" },
             hora_observada = horaFormateada,
+
             descripcion = uiState.descripcion.trim(),
             situacion_riesgo = uiState.riesgo == "Sí",
+
             latitud = uiState.latitud,
             longitud = uiState.longitud,
+
             calle = uiState.calle.ifBlank { "No especificada" },
             colonia = uiState.colonia.ifBlank { "No especificada" },
             cp = uiState.cp.ifBlank { null },
             referencias = uiState.referencias.ifBlank { null },
+
             acepto_aviso = true
         )
     }

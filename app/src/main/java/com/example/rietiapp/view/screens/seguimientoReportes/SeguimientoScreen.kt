@@ -1,26 +1,19 @@
 package com.example.rietiapp.view.screens.seguimientoReportes
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.rietiapp.viewmodel.SeguimientoViewModel
 
 @Composable
 fun SeguimientoScreen(
+    viewModel: SeguimientoViewModel, // 🟢 1. Recibe el ViewModel
     onConsultarClick: () -> Unit
 ) {
-
-    var folio by remember {
-        mutableStateOf("")
-    }
+    val uiState = viewModel.uiState
 
     Column(
         modifier = Modifier
@@ -28,30 +21,47 @@ fun SeguimientoScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-
         Text(
             text = "Seguimiento de reporte",
             style = MaterialTheme.typography.headlineSmall
         )
 
         Text(
-            text = "Ingresa el folio de tu reporte"
+            text = "Ingresa el folio de tu reporte",
+            textAlign = TextAlign.Center
         )
 
         OutlinedTextField(
-            value = folio,
-            onValueChange = { folio = it },
+            value = uiState.folioInput,
+            onValueChange = { viewModel.onFolioInputChange(it.uppercase()) }, // 🟢 Forzar mayúsculas
             label = { Text("Folio") },
-            modifier = Modifier.fillMaxWidth()
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Characters, // 🟢 Teclado en mayúsculas
+                imeAction = ImeAction.Search
+            ),
+            keyboardActions = KeyboardActions(
+                onSearch = { viewModel.buscarReporte(onExito = onConsultarClick) } // 🟢 Buscar desde el teclado
+            ),
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
         )
 
         Button(
-            onClick = onConsultarClick,
+            onClick = {
+                // 🟢 4. LLAMA A LA API DE AWS Y SOLO SI ES EXITOSO NAVEGA
+                viewModel.buscarReporte(onExito = onConsultarClick)
+            },
+            enabled = !uiState.isLoading,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Consultar")
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            } else {
+                Text("Consultar")
+            }
         }
     }
 }
-
-

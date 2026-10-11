@@ -2,6 +2,8 @@ package com.example.rietiapp.model.api
 
 import com.example.rietiapp.model.datos.ConfirmarEvidenciaRequest
 import com.example.rietiapp.model.datos.ConfirmarEvidenciaResponse
+import com.example.rietiapp.model.datos.ConsultaReporteResponse
+import com.example.rietiapp.model.datos.ConsultaReporteWrapper
 import com.example.rietiapp.model.datos.Municipio
 import com.example.rietiapp.model.datos.PresignedUrlRequest
 import com.example.rietiapp.model.datos.PresignedUrlResponse
@@ -14,6 +16,8 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Path
+import retrofit2.http.Query
 import retrofit2.http.Url
 
 interface ReporteApi {
@@ -41,4 +45,9 @@ interface ReporteApi {
 
     @GET("api/v1/municipios")
     suspend fun obtenerMunicipios(): Response<List<Municipio>>
+
+    @GET("api/v1/reportes/{folio}")
+    suspend fun consultarReporte(
+        @Path("folio") folio: String
+    ): Response<ConsultaReporteWrapper>
 }

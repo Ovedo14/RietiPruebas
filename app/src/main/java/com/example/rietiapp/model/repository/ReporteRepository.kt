@@ -6,6 +6,7 @@ import com.example.rietiapp.model.api.RetrofitInstance
 import com.example.rietiapp.model.datos.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
+import retrofit2.Response
 
 class ReporteRepository {
 
@@ -53,4 +54,8 @@ class ReporteRepository {
     }
 
     suspend fun obtenerMunicipios() = api.obtenerMunicipios()
+
+    suspend fun consultarReportePorFolio(folio: String): Response<ConsultaReporteWrapper> {
+        return api.consultarReporte(folio)
+    }
 }
