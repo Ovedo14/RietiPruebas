@@ -36,7 +36,7 @@ fun Paso3Resumen(
     modifier: Modifier = Modifier,
     ubicacionDireccion: String = ""
 ) {
-    Card(
+    Column(
         modifier = modifier.fillMaxWidth()
     ) {
         Column(

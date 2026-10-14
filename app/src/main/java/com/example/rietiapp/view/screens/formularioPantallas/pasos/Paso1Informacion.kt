@@ -71,7 +71,7 @@ fun Paso1Informacion(
 
     val maxCaracteres = 500
 
-    Card(
+    Column(
         modifier = modifier.fillMaxWidth()
     ) {
         Column(

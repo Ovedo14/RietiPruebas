@@ -4,6 +4,15 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.example.rietiapp.ui.theme.RietiAppTheme
 import com.example.rietiapp.view.navigation.AppNavigation
 import org.osmdroid.config.Configuration
@@ -25,7 +34,25 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             RietiAppTheme {
-                AppNavigation()
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .safeDrawingPadding(),
+                        contentAlignment = androidx.compose.ui.Alignment.Center
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .widthIn(max = 600.dp)
+                                .fillMaxHeight()
+                        ) {
+                            AppNavigation()
+                        }
+                    }
+                }
             }
         }
     }
